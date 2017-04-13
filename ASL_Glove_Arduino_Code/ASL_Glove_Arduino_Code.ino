@@ -1,7 +1,8 @@
 int flexSensorPin = A0; //analog pin 0
+// hi this is a test comment to test ssh
 
 void setup(){
-  Serial.begin(9600);;
+  Serial.begin(9600);
 }
 
 void loop(){
