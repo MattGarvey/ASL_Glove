@@ -1,20 +1,64 @@
-int flexSensorPin = A0; //analog pin 0
-// hi this is a test comment to test ssh
+#include <LiquidCrystal.h>
+#include <SD.h>
+
+int thumb = A0; //analog pin 0
+int pointer = A1;
+int middle = A2;
+int ring = A3;
+int pinky = A4;
+LiquidCrystal lcd(12, 10, 5, 4, 3, 2);
 
 void setup(){
   Serial.begin(9600);
+  
+  lcd.begin(16, 2);
 }
 
 void loop(){
-  int flexSensorReading = analogRead(flexSensorPin); 
+  Serial.print("Thumb = ");
+  Serial.print(testVal(thumb));
+  Serial.println();
+  //printlcd(thumb);
 
-  Serial.println(flexSensorReading);
+  Serial.print("Pointer = ");
+  Serial.print(testVal(pointer));
+  Serial.println();
+
+  Serial.print("Middle = ");
+  Serial.print(testVal(middle));
+  Serial.println();
+
+  Serial.print("Ring = ");
+  Serial.print(testVal(ring));
+  Serial.println();
+
+  Serial.print("Pinky = ");
+  Serial.print(testVal(pinky));
+  Serial.println();
 
 
-  //In my tests I was getting a reading on the arduino between 512, and 614. 
-  //Using map(), you can convert that to a larger range like 0-100.
-  int flex0to100 = map(flexSensorReading, 512, 614, 0, 100);
-  Serial.println(flex0to100);
-
-  delay(1000); //just here to slow down the output for easier reading
 }
+
+int testVal(int flexSensorPin){
+  int flexSensorReading = analogRead(flexSensorPin); 
+  
+  return map(flexSensorReading, 370, 739, 0, 100);
+}
+
+int rawVal(int flexSensorPin){
+    return analogRead(flexSensorPin); 
+}
+
+void printlcd(int finger){
+  lcd.clear();
+  lcd.print("Raw value: ");
+  lcd.print(rawVal(finger));
+  lcd.setCursor(0,1);
+  lcd.print("100 test: ");
+  lcd.print(testVal(finger));
+  delay(500);
+}
+
+
+
+
