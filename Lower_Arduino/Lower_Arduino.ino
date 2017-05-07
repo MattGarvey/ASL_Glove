@@ -51,7 +51,7 @@ void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
   // Print a message to the LCD.
-  lcd.print("hello, world!");
+  lcd.print("ASL Glove");
   //  Serial.print("Initializing SD card...");
   //
   //  if (!SD.begin(4)) {
@@ -124,6 +124,8 @@ void detectChars() {
       int mv = myFile.parseInt();
       char letter1 = myFile.read(); // unused, passes cursor over the , that seperates int and char
       char letter = myFile.read();
+      
+      //Detect if the measured values are within the threshold of a letter
       if ((thumb > t - TH && thumb < t + TH) &&
           (pointer > p - TH && pointer < p + TH) &&
           (middle > m - TH && middle < m + TH) &&
@@ -136,6 +138,7 @@ void detectChars() {
         int ringComp = ring - r;
         int pinkyComp = pinky - y;
 
+        //If values fall into multiple letter's thresholds, determine the closest letter
         int dif = abs(thumbComp) + abs(pointerComp) + abs(middleComp) + abs(ringComp) + abs(pinkyComp);
         if (dif < difS) {
           difS = dif;
