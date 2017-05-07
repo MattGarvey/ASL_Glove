@@ -2,17 +2,11 @@
 
 
 //Nick Wolford: april 25
-//Initial revision for the code that will run on the sensor handling arduino for sign detection
+//Final revision for the code that will run on the sensor handling arduino for sign detection
 //Utilizing the MPU6050 to read in values for the position and acceleration, must be tied to
 //5 flex sensors will be measured as well
 //running logs of the data will be kept and transmittted to the secondary arduino upon interrupt from the other arduino
 
-//TODO
-//implement and test on board
-//individually test interrupt schema to make sure operating as expected
-//look at memory usage/ impact on performance; if affordable, double the size of memory and use as a buffer so that there is guaranteed consistant data read out
-//speed test to find out if it is going fast enough for our purposes
-//
 
 //needed for the MPU6050/Serial
 #include<Wire.h>
@@ -89,10 +83,7 @@ void setup() {
   flexVals[3] = analogRead(A2);
   flexVals[4] = analogRead(A3);
 
-
-  //here is the spot where I will need to set the initial offsets for the different values
-  //may require more settling time initially
-  //may take some more algorithm development, initial tests not conclusive
+  //setting offsets for the motion data, should bring them to 0-mean. This will make the computiations easier later, and only has to be done once here
   int total = 0;
   for (int i = 0; i < 20; i++) {
     total += (ACXhist[i] / 20);
@@ -129,13 +120,6 @@ void setup() {
   }
   mpuOffsets[5] = total;
 
-  for (int i = 0; i < 6; i++) {
-    //Serial.print(mpuOffsets[i]);
-    //Serial.print(",");
-  }
-  //Serial.println();
-
-
   //this is the setup for the interrupts from the other arduino.
   attachInterrupt(digitalPinToInterrupt(2), ISR0, RISING);
 
@@ -143,14 +127,17 @@ void setup() {
 
 }
 
-//here is where the general data collection will happen
+//simple state machine effectively, but too few states to bew worth writing out a big case => update structure.
 void loop() {
 
+  //if the interrupt has happened, then move on to the data transfer mode
   if (dumpTrigger) {
     k += 1; //k increases to send differnet groups of values
     dumpVals();
     dumpTrigger = false;
-  }
+  }elseif( k != 0){
+    
+    //in normal operation just collect values from the sensors
 
   digitalWrite(13, HIGH);
   delay(50);
@@ -180,6 +167,7 @@ void loop() {
     GYYhist[i] = GYYhist[i] - mpuOffsets[4];
     GYZhist[i] = Wire.read() << 8 | Wire.read();
     GYZhist[i] = GYZhist[i] - mpuOffsets[5];
+  }
 
     delay(75);
 
@@ -192,7 +180,7 @@ void loop() {
 }
 
 //here is where the interrupt will send the data back to the other arduino upon interrupt
-//there is a lot of serial printing here, may be necessary to look into time optimizations for this.
+//need 7 total interrupts to send all of the data and revert back to the initial mode
 void dumpVals() {
 
   digitalWrite(10, HIGH);
@@ -275,6 +263,8 @@ void dumpVals() {
 
 }
 
+//all the interrupt actually has to do is flag that it has happened no matter where in the code it comes in
+//just changing a flag ensures no problems with sets of data
 void ISR0() {
   dumpTrigger = true;
 }
